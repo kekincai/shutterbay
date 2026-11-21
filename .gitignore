@@ -1,0 +1,12 @@
+node_modules/
+.wrangler/
+.claude/
+.dev.vars*
+!.dev.vars.example
+.env*
+.DS_Store
+*.log
+
+# local reference screenshots — not ours to redistribute
+*.JPG
+*.jpg

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Shutterbay</title>
+<meta name="description" content="Trending Steam Community screenshots, as a photo feed — captions translated into your language.">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://images.steamusercontent.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Nunito+Sans:opsz,wght@6..12,500;6..12,600;6..12,700&display=swap">
+<link rel="stylesheet" href="/app.css">
+<script type="module" src="/app.js"></script>
+</head>
+<body>
+<div class="handset">
+  <div class="screen" id="screen">
+
+    <!-- feeds -->
+    <section class="view" id="app" aria-label="Shutterbay">
+      <h1 class="sr">Shutterbay</h1>
+      <div class="scroll" id="feed"></div>
+      <nav class="tabbar" data-ta="tabs">
+        <button data-tab="0" data-ta="tab_trending"><svg viewBox="0 0 24 24" data-i="home"></svg></button>
+        <button data-tab="1" data-ta="tab_latest"><svg viewBox="0 0 24 24" data-i="eye"></svg></button>
+        <button data-tab="2" data-ta="tab_liked"><svg viewBox="0 0 24 24" data-i="heart"></svg></button>
+        <span class="ind" id="ind"></span>
+      </nav>
+    </section>
+
+    <!-- post detail -->
+    <section class="view off-right" id="detail">
+      <header class="bar"><button class="back" data-back data-ta="back"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span id="dTitle"></span></header>
+      <div class="scroll" id="dBody"></div>
+    </section>
+
+    <!-- profile -->
+    <section class="view off-right" id="profile">
+      <header class="bar"><button class="back" data-back data-ta="back"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span id="pTitle"></span></header>
+      <div class="scroll" id="pBody"></div>
+    </section>
+
+    <!-- comments -->
+    <section class="view off-right" id="comments">
+      <header class="bar"><button class="back" data-back data-ta="back"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span data-t="comments"></span></header>
+      <div class="scroll" id="cBody"></div>
+      <footer class="compose"><a id="cWrite" target="_blank" rel="noopener"><span data-t="write_on_steam"></span> ↗</a></footer>
+    </section>
+
+    <!-- options sheet -->
+    <div class="sheet" id="sheet" role="dialog" data-ta="options">
+      <button class="x" id="sheetClose" data-ta="close"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="card">
+        <h4 data-t="sheet_post"></h4>
+        <button class="row" id="optLike"><span class="ring"><span><svg viewBox="0 0 24 24" id="optHeart"></svg></span></span><span id="optLikeTxt"></span></button>
+      </div>
+      <div class="card">
+        <h4 data-t="sheet_view"></h4>
+        <button class="row" id="optCm"><svg class="ico" viewBox="0 0 24 24" data-i="bubble"></svg><span data-t="comments"></span><svg class="go" width="22" height="22" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="row" id="optPf"><svg class="ico" viewBox="0 0 24 24" data-i="user"></svg><span data-t="profile"></span><svg class="go" width="22" height="22" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" role="status"></div>
+  </div>
+</div>
+<noscript><p style="padding:24px">Shutterbay needs JavaScript to load the feed.</p></noscript>
+</body>
+</html>

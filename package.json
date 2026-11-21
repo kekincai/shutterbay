@@ -1,0 +1,18 @@
+{
+  "name": "shutterbay",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Trending Steam Community screenshots as a photo feed, with captions auto-translated by Workers AI.",
+  "license": "MIT",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "cron": "curl -s \"http://localhost:8787/cdn-cgi/handler/scheduled\"",
+    "logs": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "^4.45.0"
+  }
+}

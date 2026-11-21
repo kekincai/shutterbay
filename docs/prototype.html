@@ -1,0 +1,412 @@
+<title>Shutterbay</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ffc531'/%3E%3Cstop offset='1' stop-color='%23ef4f2c'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='30' cy='30' r='30' fill='url(%23g)'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round'%3E%3Cpath d='M18 24v-4a2 2 0 0 1 2-2h4M36 18h4a2 2 0 0 1 2 2v4M42 36v4a2 2 0 0 1-2 2h-4M24 42h-4a2 2 0 0 1-2-2v-4'/%3E%3C/g%3E%3Cpath d='M30 22.5l2.2 5.3 5.3 2.2-5.3 2.2L30 37.5l-2.2-5.3-5.3-2.2 5.3-2.2z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="theme-color" content="#ffffff">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Nunito+Sans:opsz,wght@6..12,500;6..12,600;6..12,700&display=swap">
+<style>
+/* Layout: a single app column, full screen on phones, centred 480px column on wide screens. */
+:root{
+  --desk:#efeff1;           /* page behind the app column on wide screens */
+  --bezel:#e9ecef;          /* handset shell */
+  --bezel-edge:#c9ced4;
+  --ink:#1b1b1d;            /* app text */
+  --ink-2:#55575c;          /* captions */
+  --ink-3:#9a9ca1;          /* meta, end-of-feed */
+  --line:#e6e6e8;
+  --paper:#ffffff;
+  --sun:#f7a21b;            /* app accent: orange → coral */
+  --coral:#ef4f2c;
+  --menu:rgba(22,22,24,.9);
+  --pink-1:#ee5a8c; --pink-2:#f48cb6; --pink-3:#f9bcd3;
+  --f-ui:"Nunito Sans","Noto Sans SC",system-ui,-apple-system,"PingFang SC",sans-serif;
+  --f-cn:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{height:100%}
+body{background:var(--desk);color:var(--ink);font-family:var(--f-cn);display:flex;justify-content:center;overflow:hidden}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible{outline:2px solid var(--sun);outline-offset:2px;border-radius:6px}
+
+/* ---------- app column ---------- */
+.handset{width:100%;max-width:480px;height:100%;background:var(--paper);box-shadow:0 0 0 1px rgba(0,0,0,.05),0 12px 40px rgba(0,0,0,.10)}
+.screen{position:relative;width:100%;height:100%;overflow:hidden;background:var(--paper);isolation:isolate}
+
+/* ---------- views ---------- */
+.view{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--paper);
+  transition:transform .32s cubic-bezier(.2,.8,.2,1),opacity .25s;will-change:transform}
+.view.off-right{transform:translateX(100%)}
+@media (prefers-reduced-motion:reduce){.view{transition:none}}
+
+/* ---------- app shell ---------- */
+.scroll{flex:1;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+.bar{flex:none;display:flex;align-items:center;gap:14px;height:52px;padding:0 14px;border-bottom:1px solid var(--line);font-family:var(--f-ui);font-weight:600;font-size:18px;background:var(--paper)}
+.bar .back{width:28px;height:28px;display:grid;place-items:center;margin-left:-4px}
+
+.tabbar{flex:none;position:relative;display:grid;grid-template-columns:repeat(3,1fr);height:56px;border-top:1px solid #f0f0f0;background:var(--paper)}
+.tabbar button{display:grid;place-items:center;color:#2a2a2d}
+.tabbar svg{width:25px;height:25px}
+.tabbar .ind{position:absolute;bottom:0;left:0;width:33.333%;height:4px;background:linear-gradient(90deg,var(--sun),var(--coral));transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+
+/* post card */
+.post{background:var(--paper);padding-bottom:46px}
+button,.photo{-webkit-tap-highlight-color:transparent}
+#feed{touch-action:pan-y}
+.photo{display:block;width:100%;aspect-ratio:360/340;max-width:100%;background:#ccc;position:relative;overflow:hidden}
+.photo svg{display:block;width:100%;height:100%}
+/* film grain + soft lens vignette so the drawn placeholders read more like camera photos */
+.photo::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:
+    radial-gradient(120% 100% at 50% 45%,transparent 55%,rgba(0,0,0,.28) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode:overlay;opacity:.55}
+#feed{scroll-snap-type:y proximity}
+#feed .post,#feed .end{scroll-snap-align:start}
+@keyframes bump{0%{transform:scale(1)}35%{transform:scale(1.35)}70%{transform:scale(.9)}100%{transform:scale(1)}}
+.bump{animation:bump .35s ease-out}
+.post.full .cap.open{white-space:normal}
+.heartpop{z-index:2;position:absolute;left:50%;top:50%;width:90px;height:90px;margin:-45px 0 0 -45px;opacity:0;transform:scale(.4);pointer-events:none;filter:drop-shadow(0 4px 12px rgba(0,0,0,.35))}
+.heartpop.go{animation:pop .7s ease-out}
+@keyframes pop{0%{opacity:0;transform:scale(.4)}25%{opacity:1;transform:scale(1.1)}60%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1)}}
+.meta{padding:18px 16px 0}
+.who{display:flex;align-items:center;gap:9px;font-family:var(--f-ui);font-weight:600;font-size:17px;color:var(--ink)}
+.av{flex:none;width:26px;height:26px;border-radius:50%;overflow:hidden;display:block}
+.av svg{width:100%;height:100%;display:block}
+.cap{margin-top:16px;font-size:15px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;width:100%;display:block}
+.post.full .cap{cursor:pointer}
+.acts{display:flex;align-items:center;gap:22px;margin-top:16px;font-family:var(--f-ui);font-size:15px;color:var(--ink-2)}
+.acts button{display:flex;align-items:center;gap:7px}
+.acts svg{width:22px;height:22px;color:var(--ink)}
+.acts .liker{width:22px;height:22px;margin-left:-1px}
+/* real screenshots from Steam: no fake grain, just the picture */
+.photo img{display:block;width:100%;height:100%;object-fit:cover}
+.photo.real{background:#1b1b1d}
+.photo.real::after{display:none}
+.av img,.bigav img{display:block;width:100%;height:100%;object-fit:cover}
+.src{display:flex;align-items:center;gap:8px;padding:12px 16px;font-size:13px;color:var(--ink-3);border-bottom:1px solid #f3f3f3}
+.src b{font-family:var(--f-ui);font-weight:700;color:var(--ink-2)}
+.ext{display:block;margin:-8px 16px 18px;font-size:14px;color:var(--coral);text-decoration:none}
+.ext:hover{text-decoration:underline}
+.end{padding:16px 0 18px;text-align:center;color:var(--ink-3);font-size:16px;letter-spacing:1px;background:#f5f5f6}
+.empty{padding:70px 30px;text-align:center;color:var(--ink-3);font-size:15px;line-height:1.7}
+
+/* options sheet */
+.sheet{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;gap:14px;padding:14px 14px 0;
+  background:rgba(70,70,74,.42);backdrop-filter:blur(2px) grayscale(.6);opacity:0;pointer-events:none;transition:opacity .2s}
+.sheet.open{opacity:1;pointer-events:auto}
+.sheet .x{width:32px;height:32px;display:grid;place-items:center;color:#fff;margin-left:-2px}
+.card{background:var(--menu);border-radius:10px;padding:14px 16px 16px;color:#fff;transform:translateY(-6px);transition:transform .22s}
+.sheet.open .card{transform:none}
+.card h4{margin:0 0 10px;font-size:15px;font-weight:500;opacity:.92}
+.row{display:flex;align-items:center;gap:12px;width:100%;padding:6px 0;font-size:19px;font-weight:700;text-align:left}
+.row + .row{margin-top:6px}
+.row .go{margin-left:auto}
+.ring{width:38px;height:38px;border-radius:50%;padding:2px;background:linear-gradient(140deg,#ffd23f,var(--sun) 45%,var(--coral));display:grid;place-items:center}
+.ring span{width:100%;height:100%;border-radius:50%;background:#18181a;display:grid;place-items:center}
+.ring svg{width:21px;height:21px}
+.row .ico{width:24px;height:24px;margin:0 2px 0 4px}
+
+/* profile */
+.prof{display:flex;align-items:center;gap:6px;padding:20px 16px 14px}
+.bigav{flex:none;width:80px;height:80px;margin-right:6px;border-radius:50%;padding:4px;background:conic-gradient(from 200deg,#ffd23f,var(--sun),var(--coral),#ffd23f)}
+.bigav>span{display:block;width:100%;height:100%;border-radius:50%;border:3px solid #fff;overflow:hidden}
+.bigav svg{width:100%;height:100%;display:block}
+.stats{flex:1;display:grid;grid-template-columns:1fr 1fr;text-align:center;font-family:var(--f-ui)}
+.stats div + div{border-left:1px solid var(--line)}
+.stats b{display:block;font-size:18px;font-weight:600}
+.stats small{display:block;margin-top:10px;font-family:var(--f-cn);font-size:15px;color:var(--ink-3)}
+.bio{display:flex;align-items:center;gap:10px;margin:0 16px 18px;padding:12px 14px;border:1px solid var(--line);border-radius:8px;font-size:15px;color:var(--ink-2);line-height:1.6;text-align:left;width:calc(100% - 32px)}
+.bio p{margin:0;flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.bio.open p{-webkit-line-clamp:unset}
+.bio svg{flex:none;width:22px;height:22px;color:var(--ink);transition:transform .2s}
+.bio.open svg{transform:rotate(90deg)}
+.pgrid .photo{margin-bottom:4px}
+
+/* comments */
+.cm{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid #f3f3f3}
+.cm .av{width:34px;height:34px}
+.cm b{font-family:var(--f-ui);font-weight:600;font-size:15px}
+.cm p{margin:4px 0 0;font-size:15px;color:var(--ink-2);line-height:1.55}
+.cm time{display:block;margin-top:6px;font-size:12px;color:var(--ink-3)}
+.compose{flex:none;display:flex;gap:10px;padding:10px 12px;border-top:1px solid var(--line);background:var(--paper)}
+.compose input{flex:1;min-width:0;border:1px solid var(--line);border-radius:20px;padding:9px 14px;font:inherit;font-size:15px;color:var(--ink);background:#fafafa}
+.compose input:focus{outline:2px solid var(--sun);outline-offset:-1px}
+.compose button{padding:0 16px;border-radius:20px;font-weight:700;color:#fff;background:linear-gradient(90deg,var(--sun),var(--coral))}
+.compose button:disabled{opacity:.4;cursor:default}
+
+.toast{position:absolute;left:50%;bottom:76px;z-index:30;transform:translate(-50%,10px);opacity:0;padding:8px 16px;border-radius:18px;background:rgba(20,20,22,.88);color:#fff;font-size:14px;white-space:nowrap;transition:.2s;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+
+<div class="handset">
+  <div class="screen" id="screen">
+
+    <!-- APP: feeds -->
+    <section class="view" id="app" aria-label="Shutterbay">
+      <div class="scroll" id="feed"></div>
+      <nav class="tabbar" aria-label="标签页">
+        <button data-tab="0" aria-label="关注"><svg viewBox="0 0 24 24" data-i="home"></svg></button>
+        <button data-tab="1" aria-label="发现"><svg viewBox="0 0 24 24" data-i="eye"></svg></button>
+        <button data-tab="2" aria-label="已赞"><svg viewBox="0 0 24 24" data-i="heart"></svg></button>
+        <span class="ind" id="ind"></span>
+      </nav>
+    </section>
+
+    <!-- post detail -->
+    <section class="view off-right" id="detail" aria-label="帖子">
+      <header class="bar"><button class="back" data-back aria-label="返回"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span id="dTitle"></span></header>
+      <div class="scroll" id="dBody"></div>
+    </section>
+
+    <!-- profile -->
+    <section class="view off-right" id="profile" aria-label="档案">
+      <header class="bar"><button class="back" data-back aria-label="返回"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span id="pTitle"></span></header>
+      <div class="scroll" id="pBody"></div>
+    </section>
+
+    <!-- comments -->
+    <section class="view off-right" id="comments" aria-label="评论">
+      <header class="bar"><button class="back" data-back aria-label="返回"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span>评论</span></header>
+      <div class="scroll" id="cBody"></div>
+      <form class="compose" id="cForm"><input id="cInput" placeholder="说点什么…" maxlength="120" autocomplete="off"><button id="cSend" disabled>发送</button></form>
+    </section>
+
+    <!-- options sheet -->
+    <div class="sheet" id="sheet" role="dialog" aria-label="选项">
+      <button class="x" id="sheetClose" aria-label="关闭"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="card">
+        <h4>帖子</h4>
+        <button class="row" id="optLike"><span class="ring"><span><svg viewBox="0 0 24 24" id="optHeart"></svg></span></span><span id="optLikeTxt">点赞</span></button>
+      </div>
+      <div class="card">
+        <h4>查看</h4>
+        <button class="row" id="optCm"><svg class="ico" viewBox="0 0 24 24" data-i="bubble" style="color:#fff"></svg>评论<svg class="go" width="22" height="22" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="row" id="optPf"><svg class="ico" viewBox="0 0 24 24" data-i="user" style="color:#fff"></svg>档案<svg class="go" width="22" height="22" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const ICON={
+  home:'<path d="M4 10.5 12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5H15v-6h-6v6H5.5A1.5 1.5 0 0 1 4 19z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
+  homeF:'<path d="M4 10.5 12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5H15v-6h-6v6H5.5A1.5 1.5 0 0 1 4 19z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
+  eye:'<path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/>',
+  eyeF:'<path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/>',
+  heart:'<path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
+  heartF:'<path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
+  bubble:'<path d="M5 5.5h14a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5H10l-4.5 3.5V16.5H5A1.5 1.5 0 0 1 3.5 15V7A1.5 1.5 0 0 1 5 5.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" transform="rotate(-8 12 12)"/>',
+  user:'<circle cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6.5 18.2c1.2-2.4 3.2-3.4 5.5-3.4s4.3 1 5.5 3.4" fill="none" stroke="currentColor" stroke-width="1.6"/>'
+};
+const svgI=(k,extra='')=>`<svg viewBox="0 0 24 24" ${extra}>${ICON[k]}</svg>`;
+document.querySelectorAll('svg[data-i]').forEach(s=>s.innerHTML=ICON[s.dataset.i]);
+
+/* ---------- photo scenes (drawn, original) ---------- */
+let sid=0;
+function scene(kind){
+  const u='s'+(sid++);
+  const S={
+  pier:`<defs><linearGradient id="${u}a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5d4a8c"/><stop offset=".45" stop-color="#f0759a"/><stop offset=".75" stop-color="#ffb46a"/></linearGradient><linearGradient id="${u}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e98a7c"/><stop offset="1" stop-color="#2d3a62"/></linearGradient></defs>
+    <rect width="360" height="340" fill="url(#${u}a)"/><circle cx="235" cy="182" r="34" fill="#ffe2a0"/><rect y="200" width="360" height="140" fill="url(#${u}b)"/>
+    <g stroke="#ffd9a0" stroke-width="3" opacity=".7"><path d="M205 214h60M215 226h40M222 238h26M228 250h14"/></g>
+    <path d="M0 252 L200 230 L200 236 L0 262Z" fill="#2a1e2e"/>${[20,60,100,140,180].map((x,i)=>`<rect x="${x}" y="${246-i*4}" width="6" height="${94}" fill="#2a1e2e"/>`).join('')}
+    <path d="M120 222c8-10 22-12 30-6 4-6 12-6 15-2-6 0-9 3-10 7l-4 1c-6 6-20 6-31 0z" fill="#2a1e2e"/><path d="M164 214l14 3-14 1z" fill="#2a1e2e"/>
+    <path d="M60 80c20-6 40-4 50 2M200 60c14-4 26-2 34 2" stroke="#fff" stroke-opacity=".35" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+  diner:`<defs><linearGradient id="${u}a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d1033"/><stop offset="1" stop-color="#2b1c4f"/></linearGradient><filter id="${u}g" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="3"/></filter></defs>
+    <rect width="360" height="340" fill="url(#${u}a)"/>${Array.from({length:22},(_,i)=>`<circle cx="${(i*67)%360}" cy="${(i*37)%120}" r="${i%3?0.8:1.4}" fill="#fff" opacity=".7"/>`).join('')}
+    <rect x="30" y="130" width="300" height="150" rx="10" fill="#c9cfd8"/><rect x="30" y="130" width="300" height="22" rx="10" fill="#e64980"/>
+    ${[0,1,2,3,4].map(i=>`<rect x="${48+i*56}" y="168" width="44" height="54" rx="4" fill="#ffd879"/>`).join('')}
+    <g filter="url(#${u}g)"><text x="180" y="110" text-anchor="middle" font-family="Nunito Sans,sans-serif" font-weight="800" font-size="40" fill="#ff4fa3">NITE CAFE</text></g>
+    <text x="180" y="110" text-anchor="middle" font-family="Nunito Sans,sans-serif" font-weight="800" font-size="40" fill="none" stroke="#ffd0ea" stroke-width="1.6">NITE CAFE</text>
+    <rect y="280" width="360" height="60" fill="#151225"/><path d="M0 300h360" stroke="#ff4fa3" stroke-opacity=".35" stroke-width="2"/>
+    <path d="M60 300c0-14 10-22 26-22h50c12 0 20 6 26 14l22 4c8 2 12 6 12 14v8H60z" fill="#5be0d6"/><circle cx="95" cy="320" r="10" fill="#111"/><circle cx="175" cy="320" r="10" fill="#111"/>`,
+  palms:`<defs><linearGradient id="${u}a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5fb8f0"/><stop offset="1" stop-color="#c8ecff"/></linearGradient></defs>
+    <rect width="360" height="340" fill="url(#${u}a)"/><path d="M40 70c18-8 36-6 46 0M250 50c14-6 30-4 40 2" stroke="#fff" stroke-width="10" stroke-linecap="round" opacity=".7"/>
+    <rect x="70" y="120" width="230" height="170" fill="#f6a8c1"/><rect x="70" y="120" width="230" height="16" fill="#fff"/><path d="M70 120c0-30 30-30 40-30h150c10 0 40 0 40 30z" fill="#f48fb1"/>
+    ${[0,1,2,3].map(i=>`<rect x="${92+i*52}" y="160" width="30" height="40" rx="15" fill="#7fd3e8"/><rect x="${92+i*52}" y="220" width="30" height="40" rx="3" fill="#7fd3e8"/>`).join('')}
+    <rect y="290" width="360" height="50" fill="#9aa0a8"/><path d="M0 312h360" stroke="#fff" stroke-dasharray="18 14" stroke-width="3"/>
+    ${[[40,300],[330,300]].map(([x,y])=>`<path d="M${x} ${y}c-4-60 2-120 8-170" stroke="#7a5a3a" stroke-width="7" fill="none"/><g fill="#2f8f4e" transform="translate(${x+8} 130)">${[-150,-110,-70,-30,10,50].map(r=>`<path d="M0 0c20-6 40 0 52 14-20-4-36-2-52-14z" transform="rotate(${r})"/>`).join('')}</g>`).join('')}`,
+  swamp:`<defs><linearGradient id="${u}a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d8e7ea"/><stop offset="1" stop-color="#eef3e6"/></linearGradient><linearGradient id="${u}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7f9f8c"/><stop offset="1" stop-color="#3e5e4c"/></linearGradient></defs>
+    <rect width="360" height="340" fill="url(#${u}a)"/>${Array.from({length:14},(_,i)=>`<ellipse cx="${i*28}" cy="${150-(i%3)*10}" rx="26" ry="${40+(i%4)*8}" fill="${i%2?'#4f7d48':'#3d6b3c'}"/>`).join('')}
+    <rect y="170" width="360" height="170" fill="url(#${u}b)"/><g stroke="#e6efe8" stroke-opacity=".35" stroke-width="2"><path d="M20 190h70M150 205h90M260 185h60M60 230h80"/></g>
+    ${Array.from({length:26},(_,i)=>`<ellipse cx="${(i*47)%360}" cy="${240+(i*23)%90}" rx="${12+(i%3)*4}" ry="5" fill="#6aa64e"/>`).join('')}
+    <g fill="#9aa5b0"><path d="M235 170c-2-20 6-32 16-34 6-1 10 2 10 6l14 2-14 2c-2 6-8 8-12 14-2 6 0 12 4 20l-8 40h-3l2-24-6 0-4 24h-3l4-30c-8-4-12-12-10-20z"/></g><path d="M245 150l-6-16" stroke="#9aa5b0" stroke-width="4" stroke-linecap="round"/>`,
+  pool:`<defs><linearGradient id="${u}a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd3a5"/><stop offset="1" stop-color="#ff9fb0"/></linearGradient></defs>
+    <rect width="360" height="340" fill="url(#${u}a)"/>${[[10,70,40],[60,40,30],[100,90,46],[160,30,38],[210,60,28],[250,20,44],[305,80,40]].map(([x,y,w])=>`<rect x="${x}" y="${y+40}" width="${w}" height="${200-y}" fill="#6c5a8e" opacity=".55"/>`).join('')}
+    <rect y="170" width="360" height="170" fill="#f3efe8"/><path d="M20 200h320l-20 110H40z" fill="#3cc6d8"/><g stroke="#bff3fa" stroke-width="3" fill="none" stroke-linecap="round" opacity=".9"><path d="M60 230c20-8 40 8 60 0s40-8 60 0M150 262c20-8 40 8 60 0s40-8 60 0M70 290c16-6 32 6 48 0"/></g>
+    <g fill="#fff"><path d="M30 316l60-12 4 6-60 12z"/><path d="M250 318l70-10 4 6-70 10z"/></g><circle cx="300" cy="200" r="16" fill="#ff6f61"/><path d="M300 184v32M284 200h32" stroke="#fff" stroke-width="3"/>`,
+  market:`<rect width="360" height="340" fill="#f2e6cf"/>${[0,1,2,3,4,5].map(i=>`<rect x="${i*60}" y="0" width="30" height="80" fill="#e8553f"/>`).join('')}<path d="M0 80h360v12H0z" fill="#b8402f"/>
+    ${[0,1,2].map(r=>[0,1,2,3,4].map(c=>`<circle cx="${40+c*70}" cy="${140+r*70}" r="${24}" fill="${['#ff8c2e','#ffcf3a','#7ccf55','#e84a5f','#ff8c2e'][(c+r)%5]}"/><path d="M${40+c*70} ${116+r*70}v-6" stroke="#4d7a34" stroke-width="4" stroke-linecap="round"/>`).join('')).join('')}
+    <rect x="110" y="300" width="140" height="30" rx="4" fill="#fff"/><text x="180" y="321" font-family="Nunito Sans,sans-serif" font-weight="800" font-size="16" fill="#b8402f" text-anchor="middle">3 FOR $5</text>`
+  };
+  return `<svg viewBox="0 0 360 340" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${S[kind]}</svg>`;
+}
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+/* a post's picture: a real screenshot when it has one, otherwise a drawn scene */
+const photoArt=p=>p.img?`<img src="${esc(p.img)}" alt="" loading="lazy" decoding="async">`:scene(p.k);
+function avatar(user){
+  if(user.img)return `<img src="${esc(user.img)}" alt="" loading="lazy">`;
+  const u='v'+(sid++);
+  return `<svg viewBox="0 0 40 40"><defs><linearGradient id="${u}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${user.c[0]}"/><stop offset="1" stop-color="${user.c[1]}"/></linearGradient></defs><rect width="40" height="40" fill="url(#${u})"/><circle cx="20" cy="16" r="7" fill="#fff" opacity=".9"/><path d="M6 40c2-9 8-13 14-13s12 4 14 13z" fill="#fff" opacity=".9"/></svg>`;
+}
+
+/* ---------- sample data (fictional) ---------- */
+const USERS={
+  me:{h:'you',c:['#ffc531','#ef4f2c']},
+  mo:{h:'mangrove_mo',c:['#ff9a62','#d9467a'],fans:'27K',follow:'11K',bio:'我是莫，住在最爱的红树林小岛上，每天看日落、钓鱼、跟鹈鹕吵架。私信请发鱼饵照片。'},
+  nite:{h:'nitecafe_dee',c:['#6f5cff','#ff4fa3'],fans:'8.4K',follow:'602',bio:'夜班厨师 / 煎饼爱好者。凌晨两点后的城市归我管。'},
+  rae:{h:'rooftop.rae',c:['#3cc6d8','#2b7de9'],fans:'112K',follow:'340',bio:'顶楼泳池收藏家。哪里有天台，哪里就有我。合作请走经纪人。'},
+  cal:{h:'cal_wetlands',c:['#7ccf55','#2f7a5a'],fans:'1.9K',follow:'2.2K',bio:'湿地观鸟第七年。苍鹭不是鹤，说第三遍了。'},
+  pip:{h:'pipfruitstand',c:['#ffcf3a','#e8553f'],fans:'640',follow:'89',bio:'海滨路 14 号水果摊，周二休息。'}
+};
+let POSTS=[
+  {id:1,u:'cal',k:'swamp',cap:'早上六点蹲了两小时，就为了这一张。有谁认得这是哪种苍鹭？',likes:332,liked:false,feed:[0,1],
+    cm:[['mo','大蓝鹭，脖子那个弯一看就是'],['pip','你蹲点的时候吃早饭了吗']]},
+  {id:2,u:'mo',k:'pier',cap:'两只酷鸟享受日落。平平无奇 #鹈鹕 #码头 #今天也没钓到鱼',likes:1043,liked:true,feed:[0,1],
+    cm:[['rae','这光线绝了'],['nite','鹈鹕比你会摆拍'],['cal','左边那只是褐鹈鹕，右边那只是你']]},
+  {id:3,u:'nite',k:'diner',cap:'凌晨两点的煎饼，比任何约会都靠谱 #夜宵 #霓虹',likes:218,liked:false,feed:[0,1],
+    cm:[['mo','给我留一份']]},
+  {id:4,u:'rae',k:'pool',cap:'今日份天台：水温 28°，风刚好，人刚好少',likes:12400,liked:false,feed:[1],
+    cm:[['nite','门票多少'],['pip','好看但我恐高']]},
+  {id:5,u:'pip',k:'market',cap:'芒果到了！三个五块，先到先得，卖完收摊',likes:57,liked:false,feed:[0],cm:[]},
+  {id:6,u:'mo',k:'palms',cap:'粉色楼 + 两棵棕榈 = 这条街唯一的打卡点',likes:880,liked:false,feed:[1],cm:[['rae','这栋楼我拍过三十次']]}
+];
+const byId=id=>POSTS.find(p=>p.id===id);
+const fmt=n=>n>=1000?(n/1000).toFixed(n>=10000?0:(n%1000<100?0:1)).replace(/\.0$/,'')+'K':String(n);
+
+/* ---------- rendering ---------- */
+const HEART_POP=`<svg class="heartpop" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z" fill="#fff"/></svg>`;
+function postHTML(p,full){
+  const u=USERS[p.u];
+  const likeBit=p.liked
+    ? `${svgI('heartF')}<span class="av liker">${avatar(USERS.me)}</span>`
+    : `${svgI('heart')}<span>${fmt(p.likes)}</span>`;
+  return `<article class="post${full?' full':''}" data-id="${p.id}">
+    <button class="photo${p.img?' real':''}" data-act="photo" aria-label="选项">${photoArt(p)}${HEART_POP}</button>
+    <div class="meta">
+      ${full?'':`<button class="who" data-act="profile"><span class="av">${avatar(u)}</span>@${esc(u.h)}</button>`}
+      <button class="cap" data-act="detail">${esc(p.cap)}</button>
+      <div class="acts">
+        <button data-act="like" aria-label="${p.liked?'取消赞':'点赞'}">${likeBit}</button>
+        <button data-act="comments" aria-label="评论">${svgI('bubble')}<span>${fmt((p.remoteCm||0)+p.cm.length)}</span></button>
+      </div>
+    </div></article>`;
+}
+let tab=0;
+function renderFeed(keepScroll){
+  const f=$('#feed');const st=f.scrollTop;
+  const list=tab===2?POSTS.filter(p=>p.liked):POSTS.filter(p=>p.feed.includes(tab));
+  f.innerHTML=list.length
+    ? list.map(p=>postHTML(p)).join('')+`<div class="end">全看完了！</div>`
+    : `<div class="empty">还没有赞过的照片。<br>在照片上双击就能点赞。</div>`;
+  if(keepScroll)f.scrollTop=st;
+  document.querySelectorAll('.tabbar button').forEach((b,i)=>{
+    const k=['home','eye','heart'][i];b.firstElementChild.innerHTML=ICON[i===tab?k+'F':k];b.setAttribute('aria-current',i===tab?'page':'false');
+  });
+  $('#ind').style.transform=`translateX(${tab*100}%)`;
+}
+/* each tab keeps its own scroll position, like switching tabs in the real app */
+const scrollMem=[0,0,0];
+function setTab(n){ if(n===tab){ $('#feed').scrollTo({top:0,behavior:'smooth'}); return } scrollMem[tab]=$('#feed').scrollTop; tab=n; renderFeed(); $('#feed').scrollTop=scrollMem[n]; }
+document.querySelectorAll('.tabbar button').forEach(b=>b.onclick=()=>setTab(+b.dataset.tab));
+
+/* ---------- navigation ---------- */
+const stack=[];
+function push(id){ const v=$('#'+id); v.style.zIndex=10+stack.length; v.classList.remove('off-right'); stack.push(id); }
+function pop(){ const id=stack.pop(); if(id) $('#'+id).classList.add('off-right'); refreshAll(); }
+document.querySelectorAll('[data-back]').forEach(b=>b.onclick=pop);
+
+let curPost=null,curUser=null;
+function openDetail(id){curPost=id;const p=byId(id);$('#dTitle').textContent='@'+USERS[p.u].h;$('#dBody').innerHTML=postHTML(p,true);push('detail')}
+function openProfile(uk){
+  curUser=uk;const u=USERS[uk];$('#pTitle').textContent='@'+u.h;
+  const posts=POSTS.filter(p=>p.u===uk);
+  $('#pBody').innerHTML=`<div class="prof"><span class="bigav"><span>${avatar(u)}</span></span>
+    <div class="stats"><div><b>${u.fans}</b><small>粉丝</small></div><div><b>${u.follow}</b><small>关注</small></div></div></div>
+    <button class="bio" id="bio"><p>${u.bio}</p><svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="pgrid">${posts.map(p=>`<button class="photo" data-pid="${p.id}" aria-label="查看帖子">${scene(p.k)}</button>`).join('')}</div>`;
+  $('#bio').onclick=e=>e.currentTarget.classList.toggle('open');
+  $('#pBody').querySelectorAll('[data-pid]').forEach(b=>b.onclick=()=>openDetail(+b.dataset.pid));
+  push('profile');
+}
+function openComments(id){curPost=id;renderComments();push('comments');setTimeout(()=>$('#cBody').scrollTop=9e9,50)}
+function renderComments(){
+  const p=byId(curPost);const t=['2小时前','5小时前','昨天','2天前'];
+  $('#cBody').innerHTML=p.cm.length?p.cm.map(([uk,txt],i)=>`<div class="cm"><span class="av">${avatar(USERS[uk])}</span><div><b>@${USERS[uk].h}</b><p>${txt.replace(/</g,'&lt;')}</p><time>${uk==='me'?'刚刚':t[i%4]}</time></div></div>`).join('')
+    :`<div class="empty">还没有评论，来抢沙发。</div>`;
+}
+const cIn=$('#cInput');cIn.oninput=()=>$('#cSend').disabled=!cIn.value.trim();
+$('#cForm').onsubmit=e=>{e.preventDefault();const v=cIn.value.trim();if(!v)return;byId(curPost).cm.push(['me',v]);cIn.value='';$('#cSend').disabled=true;renderComments();$('#cBody').scrollTop=9e9;toast('评论已发布')};
+
+function toggleLike(id,force){const p=byId(id);const nv=force===undefined?!p.liked:force;if(nv!==p.liked){p.liked=nv;p.likes+=nv?1:-1;}refreshAll();
+  document.querySelectorAll(`.post[data-id="${id}"] [data-act=like] svg`).forEach(s=>s.classList.add('bump'));return nv}
+function refreshAll(){
+  renderFeed(true);
+  if(stack.includes('detail')&&curPost){$('#dBody').innerHTML=postHTML(byId(curPost),true)}
+}
+
+/* options sheet */
+let sheetPost=null;
+function openSheet(id){sheetPost=id;syncSheet();$('#sheet').classList.add('open')}
+function syncSheet(){const p=byId(sheetPost);$('#optHeart').innerHTML=ICON[p.liked?'heartF':'heart'];$('#optHeart').style.color='#fff';$('#optLikeTxt').textContent=p.liked?'取消赞':'点赞'}
+function closeSheet(){$('#sheet').classList.remove('open')}
+$('#sheetClose').onclick=closeSheet;
+$('#sheet').onclick=e=>{if(e.target.id==='sheet')closeSheet()};
+$('#optLike').onclick=()=>{const v=toggleLike(sheetPost);syncSheet();toast(v?'已点赞':'已取消赞');setTimeout(closeSheet,250)};
+$('#optCm').onclick=()=>{closeSheet();openComments(sheetPost)};
+$('#optPf').onclick=()=>{closeSheet();openProfile(byId(sheetPost).u)};
+
+/* delegated post actions (feed + detail) */
+let lastTap=0;
+document.addEventListener('click',e=>{
+  const a=e.target.closest('[data-act]');if(!a)return;const art=a.closest('.post');if(!art)return;const id=+art.dataset.id;
+  const act=a.dataset.act;
+  if(act==='photo'){
+    const now=Date.now();
+    if(now-lastTap<300){clearTimeout(a._t);const pop=a.querySelector('.heartpop');toggleLike(id,true);
+      const fresh=document.querySelector(`.post[data-id="${id}"] .heartpop`)||pop;fresh.classList.remove('go');void fresh.offsetWidth;fresh.classList.add('go');lastTap=0;return}
+    lastTap=now;a._t=setTimeout(()=>openSheet(id),300);
+  }
+  else if(act==='like')toggleLike(id);
+  else if(act==='comments')openComments(id);
+  else if(act==='profile')openProfile(byId(id).u);
+  else if(act==='detail'){ if(art.classList.contains('full'))a.classList.toggle('open'); else openDetail(id); }
+});
+
+/* keyboard: Q/E switch tabs, Esc goes back */
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  if(e.key==='Escape'){ if($('#sheet').classList.contains('open'))closeSheet(); else if(stack.length)pop(); }
+  if(!stack.length){
+    if($('#sheet').classList.contains('open'))return;
+    if(e.key==='q'||e.key==='Q')setTab((tab+2)%3);
+    if(e.key==='e'||e.key==='E')setTab((tab+1)%3);
+    /* ↑ / ↓ step one post at a time; Enter opens options, C opens comments */
+    const f=$('#feed'),posts=[...f.querySelectorAll('.post')];
+    const cur=posts.findIndex(p=>p.offsetTop+p.offsetHeight/2>f.scrollTop);
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();const n=Math.max(0,Math.min(posts.length-1,cur+(e.key==='ArrowDown'?1:-1)));posts[n]&&f.scrollTo({top:posts[n].offsetTop,behavior:'smooth'})}
+    if(e.key==='Enter'&&posts[cur]){e.preventDefault();openSheet(+posts[cur].dataset.id)}
+    if((e.key==='c'||e.key==='C')&&posts[cur])openComments(+posts[cur].dataset.id);
+  }
+});
+/* swipe right from left edge = back */
+let sx=null,fx=null,fy=null;$('#screen').addEventListener('touchstart',e=>{const t=e.touches[0];sx=t.clientX<30?t.clientX:null;fx=t.clientX;fy=t.clientY},{passive:true});
+$('#screen').addEventListener('touchend',e=>{
+  const t=e.changedTouches[0];
+  if(sx!==null){const dx=t.clientX-sx;sx=null;if(dx>70&&stack.length){pop();return}}
+  /* horizontal swipe on the feed switches tabs, like L1 / R1 */
+  if(fx===null||stack.length||$('#sheet').classList.contains('open'))return;
+  const dx=t.clientX-fx,dy=t.clientY-fy;fx=null;
+  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.6){const n=tab+(dx<0?1:-1);if(n>=0&&n<3)setTab(n)}
+},{passive:true});
+let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),1500)}
+
+renderFeed();
+})();
+</script>

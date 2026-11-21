@@ -1,0 +1,40 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "shutterbay",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-11-13",
+
+  // Static site in /public; only /api/* runs the Worker first.
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+
+  // D1 is created automatically on first `wrangler deploy` (no id needed here).
+  // Tables are created by the Worker itself on first use.
+  "d1_databases": [
+    { "binding": "DB", "database_name": "shutterbay" }
+  ],
+
+  // Workers AI translates captions (free plan: 10,000 Neurons/day).
+  "ai": { "binding": "AI" },
+
+  // Refresh feeds and pre-translate new captions every 30 minutes.
+  "triggers": { "crons": ["*/30 * * * *"] },
+
+  "vars": {
+    // Comma-separated Steam app ids. The first one is the default feed.
+    // 3240220 = Grand Theft Auto V Enhanced. Add GTA VI's id here once it is on Steam.
+    "STEAM_APPIDS": "3240220",
+    "TRANSLATE_MODEL": "@cf/google/gemma-4-26b-a4b-it",
+    // Hard cap on Workers AI calls per UTC day (~13 Neurons each → well under the free 10k).
+    "AI_DAILY_CALLS": "600",
+    "CRON_TRANSLATIONS": "20"
+  },
+
+  "observability": { "enabled": true },
+
+  // Serve on your own subdomain (the zone must be on Cloudflare). Forks: change or remove this.
+  "routes": [{ "pattern": "snapmatic.kejincai.dev", "custom_domain": true }]
+}
